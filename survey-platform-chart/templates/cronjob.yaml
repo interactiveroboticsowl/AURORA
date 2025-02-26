@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup
+spec:
+  schedule: {{ .Values.cleanup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: builder-service-account # TODO: create own service account
+          containers:
+            - name: cleanup-job
+              image: {{ .Values.registryAddress }}:{{ .Values.registryPort }}/cleanup-job:latest
+              imagePullPolicy: Always # TODO: reduce for prod
+              env:
+                - name: PYTHONUNBUFFERED
+                  value: "0"
+                - name: MAX_CONTAINER_AGE
+                  value: {{ .Values.cleanup.maxContainerAge | quote }}
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 200Mi
+          restartPolicy: OnFailure

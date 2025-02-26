@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend
+    spec:
+      serviceAccountName: builder-service-account
+      containers:
+        - name: {{ .Release.Name }}-backend
+          image: {{ .Values.registryAddress }}:{{ .Values.registryPort }}/survey-platform-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: db-volume
+              mountPath: /db
+          env:
+            - name: DOMAIN
+              value: {{ .Values.domain | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.environment | quote }}
+            - name: ADMIN_USERNAME
+              value: {{ .Values.ADMIN_USERNAME | quote }}
+            - name: ADMIN_PASSWORD
+              value: {{ .Values.ADMIN_PASSWORD | quote }}
+            - name: MINIO_USER
+              value: {{ .Values.minioUser | quote }}
+            - name: MINIO_PASSWORD
+              value: {{ .Values.minioPassword | quote }}
+        - name: {{ .Release.Name }}-frontend
+          image: {{ .Values.registryAddress }}:{{ .Values.registryPort }}/survey-platform-frontend:latest
+          imagePullPolicy: Always
+          env:
+            - name: AUTH_SECRET
+              value: {{ .Values.authSecret | quote}}
+            - name: AUTH_URL
+              value: "http://survey-platform-backend-service"
+            - name: AUTH_TRUST_HOST
+              value: "true"
+            - name: ORIGIN
+              value: {{ printf "http://app.%s" .Values.domain | quote }}
+            - name: VITE_BACKEND_URL
+              value: {{ printf "http://api.%s" .Values.domain | quote }}
+          
+          ports:
+            - containerPort: 81
+      volumes:
+        - name: db-volume
+          persistentVolumeClaim:
+            claimName: db-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulation-orchestrator
+  namespace: default
+  labels:
+    app: simulation-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simulation-orchestrator
+  template:
+    metadata:
+      labels:
+        app: simulation-orchestrator
+    spec:
+      serviceAccountName: simulation-orchestrator
+      containers:
+        - name: simulation-orchestrator
+          image: {{ .Values.registryAddress }}:{{ .Values.registryPort }}/simulation-orchestrator:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: KOPF_WATCHING_ALLOWED
+              value: "true"          
+            - name: DOMAIN
+              value: {{ .Values.domain | quote }}
+            - name: SSL_ENABLED
+              value: {{ .Values.ssl | quote }}
+            - name: SSL_ISSUER
+              value: {{ printf "letsencrypt-%s" .Values.environment | quote }}
+            - name: MINIO_USER
+              value: {{ .Values.minioUser | quote }}
+            - name: MINIO_PASSWORD
+              value: {{ .Values.minioPassword | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: survey-controller
+  namespace: default
+  labels:
+    app: survey-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: survey-controller
+  template:
+    metadata:
+      labels:
+        app: survey-controller
+    spec:
+      serviceAccountName: simulation-orchestrator
+      containers:
+        - name: survey-controller
+          image: {{ .Values.registryAddress }}:{{ .Values.registryPort }}/survey-controller:latest
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+data:
+# dev workaround: as api.localdev.me would resolve to 127.0.0.1, the current-pod loopback and not the cluster is used
+# instead, route api.localdev.me to the cluster-local hostname of the backend service (forward to self to resolve that to an ip)
+  api.localdev.server: |
+    api.localdev.me {
+        log
+        errors
+        rewrite name api.localdev.me survey-platform-backend-service.default.svc.cluster.local
+        forward . 127.0.0.1
+    }

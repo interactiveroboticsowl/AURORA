@@ -1,0 +1,7 @@
+apiVersion: example.com/v1
+kind: Participation
+metadata:
+  name: {{ userID }}-{{ surveyName }}
+spec:
+  userId: {{ userID }}
+  surveyName: {{ surveyName }}

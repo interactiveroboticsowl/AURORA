@@ -1,0 +1,33 @@
+{{- if and (eq .Values.ssl true) (ne .Values.environment "dev") }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ printf "letsencrypt-%s" .Values.environment }}
+spec:
+  acme:
+    email: {{ .Values.email }}
+    server: {{ eq .Values.environment "production" | ternary "https://acme-v02.api.letsencrypt.org/directory" "https://acme-staging-v02.api.letsencrypt.org/directory" }}
+    privateKeySecretRef:
+      name: letsencrypt-issuer-account-key
+    solvers:
+    - dns01:
+        webhook:
+          groupName: com.netcup.webhook
+          solverName: netcup
+          config:
+            secretRef: netcup-secret
+            secretNamespace: cert-manager
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: le-crt
+spec:
+  secretName: tls-secret
+  issuerRef: 
+    kind: ClusterIssuer
+    name: letsencrypt-{{ .Values.environment }}
+  commonName: {{ printf "*.%s" .Values.domain | quote }}
+  dnsNames:
+    - {{ printf "*.%s" .Values.domain | quote }}
+{{- end }}

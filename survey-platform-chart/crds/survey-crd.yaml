@@ -1,0 +1,94 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: surveys.example.com
+spec:
+  group: example.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["spec"]
+          properties:
+            spec:
+              type: object
+              required: ["buildVersion", "gitRepo", "containers"]
+              properties:
+                buildVersion:
+                  type: integer
+                gitRepo:
+                  type: object
+                  required: ["url", "branch"]
+                  properties:
+                    url:
+                      type: string
+                    branch:
+                      type: string
+                    authSecret:
+                      type: string
+                containers:
+                  type: array
+                  items:
+                    type: object
+                    required: ["name", "dockerfile"]
+                    properties:
+                      name:
+                        type: string
+                      dockerfile:
+                        type: string
+                      ports:
+                        type: array
+                        items:
+                          type: object
+                          required: ["containerPort", "servicePort"]
+                          properties:
+                            containerPort:
+                              type: integer
+                            servicePort:
+                              type: integer
+                rosVersion:
+                  type: string
+                  enum: ["1", "2"]
+                rosbagTopics:
+                  type: array
+                  items:
+                    type: string
+                  description: "List of topics to record. If empty, all topics will be recorded."
+                started:
+                  type: boolean
+                  description: "Indicates whether the survey has been started"
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                state:
+                  type: string
+                  enum: ["Pending", "Building", "Ready", "Failed", "Started"]
+                observedVersion:
+                  type: integer
+                lastSuccessfulBuild:
+                  type: string
+                  format: date-time
+      additionalPrinterColumns:
+        - name: Version
+          type: integer
+          jsonPath: .spec.buildVersion
+        - name: Status
+          type: string
+          jsonPath: .status.state
+        - name: Started
+          type: boolean
+          jsonPath: .spec.started
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  scope: Cluster
+  names:
+    plural: surveys
+    singular: survey
+    kind: Survey
+    shortNames:
+      - sv

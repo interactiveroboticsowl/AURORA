@@ -1,0 +1,21 @@
+apiVersion: example.com/v1
+kind: Survey
+metadata:
+  name: {{ name }}
+spec:
+  buildVersion: {{ buildVersion }}
+  started: {{ started }}
+  gitRepo:
+    url: {{ repoUrl }}
+    branch: {{ repoBranch }}
+    authSecret: {{ authSecretName }}
+  rosVersion: {{ rosVersion }}
+  rosbagTopics: {{ rosbagTopic }} # If you want to record all topics, leave this empty
+  containers: {{ containers }}
+    # - name: simulation
+    #   dockerfile: "Dockerfile"
+    #   ports:
+    #     - containerPort: 8080
+    #       servicePort: 80
+    #     - containerPort: 7681
+    #       servicePort: 7681

@@ -1,0 +1,6 @@
+id,title,prompt,item_type,question_type,options,scale_min,scale_max,statements,matrix_options,image_url,video_url,text_content
+,Anthropomorphism,question,question,matrix_scale,,,,"Fake - Natural,  Machinelike - Humanlike,  Unconscious - Conscious,  Artificial - Lifelike,  Moving rigidly - Moving elegantly","1,  2,  3,  4,  5",,,
+,Animacy,question,question,matrix_scale,,,,"Dead - Alive,  Stagnant - Lively,  Mechanical - Organic,  Artificial - Lifelike,  Inert - Interactive,  Apathetic - Responsive","1,  2,  3,  4,  5",,,
+,Likeability,question,question,matrix_scale,,,,"Dislike - Like,  Unfriendly - Friendly,  Unkind - Kind,  Unpleasant - Pleasant,  Awful - Nice","1,  2,  3,  4,  5",,,
+,Perceived Intelligence,question,question,matrix_scale,,,,"Incompetent - Competent,  Ignorant - Knowledgeable,  Irresponsible - Responsible,  Unintelligent - Intelligent,  Foolish - Sensible","1,  2,  3,  4,  5",,,
+,Perceived Safety,question,question,matrix_scale,,,,"Anxious - Relaxed,  Calm - Agitated,  Still - Surprised","1,  2,  3,  4,  5",,,

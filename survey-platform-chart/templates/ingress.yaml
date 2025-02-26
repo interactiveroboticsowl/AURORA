@@ -1,0 +1,68 @@
+{{- if ne .Values.environment "production" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-api-http
+  annotations:
+    spec.ingressClassName: traefik    
+    {{- if and (eq .Values.ssl true) (ne .Values.environment "dev")}}
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    {{- end }}
+spec:
+{{- if .Values.ssl }}
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - api.{{ .Values.domain }}
+{{- end }}
+  rules:
+    - host: api.{{ .Values.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-backend-service
+                port:
+                  number: 80
+---
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-http
+  annotations:
+    spec.ingressClassName: traefik        
+    {{- if and (eq .Values.ssl true) (ne .Values.environment "dev")}}
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    {{- end }}
+spec:
+{{- if .Values.ssl }}
+  tls:
+    - secretName: tls-secret
+      hosts:
+        - app.{{ .Values.domain }}
+{{- end }}
+  rules:
+    - host: app.{{ .Values.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-app-service
+                port:
+                  number: 80
+{{- if .Values.ssl }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+{{- end }}

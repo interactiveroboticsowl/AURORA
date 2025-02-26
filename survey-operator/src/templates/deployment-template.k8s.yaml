@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ name }}
+  namesapce: {{ namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ name }}
+  template:
+    metadata:
+      labels:
+        app: {{ name }}
+    spec:
+      containers:
+      {{ containers }}
+        - name: rosbag-recorder
+          image: {{ rosbag_image }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              {{ rosbag_cmd }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "{{ stop_command }}"]
+      volumes:
+        - name: data          
+          persistentVolumeClaim:
+            claimName: {{ name }}-data

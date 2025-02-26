@@ -1,0 +1,14 @@
+domain: "localdev.me"
+environment: "dev" # dev, staging or production
+registryAddress: registry
+registryPort: 5000
+email: admin@localdev.me
+ssl: false
+authSecret: REPLACE
+ADMIN_USERNAME: REPLACE
+ADMIN_PASSWORD: REPLACE
+minioUser: minio  # please see minio-values.yaml and minio docs for configuration
+minioPassword: minio123
+cleanup:
+  schedule: "*/5 * * * *"
+  maxContainerAge: 120

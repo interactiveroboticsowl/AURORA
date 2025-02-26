@@ -1,0 +1,32 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: survey-platform
+kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would resolve to 127.0.0.1)
+  host: "localdev.me" # important for the `server` setting in the kubeconfig
+  hostIP: "127.0.0.1" # where the Kubernetes API will be listening on
+  hostPort: "6445" # where the Kubernetes API listening port will be mapped to on your host system
+ports:
+  - port: 80:80 # same as `--port '80:80@loadbalancer'`
+    nodeFilters:
+      - loadbalancer
+  - port: 443:443 # same as `--port '443:443@loadbalancer'`
+    nodeFilters:
+      - loadbalancer
+volumes:
+  - volume: $HOME/.survey-platform-db:/pv/db
+    nodeFilters:
+      - server:0
+      - agent:*
+registries:
+  create:
+    name: registry
+    host: "0.0.0.0"
+    hostPort: "5000"
+    # TODO: ideally, persist the registry in a local folder    
+options:
+  runtime:
+    ulimits:
+      - name: nofile
+        soft: 1024
+        hard: 26677
