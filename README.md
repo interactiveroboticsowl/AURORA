@@ -3,6 +3,11 @@
 
 AURORA is a software platform that facilitates scalable deployment of robotic simulations over the web for the Human-Robot Interaction (HRI) community. It allows researchers from different fields to easily provide HRI experiences by deploying online studies with robotic simulations paired with customizable surveys. AURORA is entirely open source and can be hosted locally, providing flexibility and control of the research environment.
 
+### Disclaimer: Early Development Stage  
+This software is currently in **early development** and may contain bugs, incomplete features, or unexpected behavior. **Use it at your own risk.**  
+We do not take responsibility for any issues that may arise from its use. Contributions and feedback are welcome to improve its stability and functionality.
+
+
 The platform provides three main functionalities:
 1. **Web Deployment of Simulations**: Enables researchers to deploy robotics simulations or other web-based applications online.
 2. **Web Deployment of Surveys**: Allows researchers to conduct standalone surveys.
